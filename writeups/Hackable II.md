@@ -208,7 +208,7 @@ XXXXXXXXXXXKc       .0MMMMMMMMMMMMMMMMMMMMMMMMMMMk.   ............    xXXXXX
 XXXXXXXXXXl        cWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMo   .............   :XXXX
 XXXXXXXXK.        dMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM0    ............   .KXX
 XXXXXXXX.        'MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMO   .............   'XXX
-invite-me: ["linkedin link, you will have to do the ctf to have it"]
+invite-me: ["linkedin link, you will have to do the ctf to have it"]```
 
 # Privilege escalation's vectors :
 
