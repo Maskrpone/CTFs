@@ -4,16 +4,16 @@
     "type": "split",
     "children": [
       {
-        "id": "6933c327c887c6e9",
+        "id": "427df1eb90af17b4",
         "type": "tabs",
         "children": [
           {
-            "id": "79c0e9fbb40e5691",
+            "id": "ef5f6a817db321cc",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Hackable II.md",
+                "file": "Mercury.md",
                 "mode": "source",
                 "source": false
               }
@@ -86,7 +86,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Hackable II.md",
+                "file": "Mercury.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -103,7 +103,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Hackable II.md",
+                "file": "Mercury.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -126,7 +126,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Hackable II.md"
+                "file": "Mercury.md"
               }
             }
           }
@@ -147,8 +147,16 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "79c0e9fbb40e5691",
+  "active": "ef5f6a817db321cc",
   "lastOpenFiles": [
-    "Hackable II.md"
+    "templates/notes.md",
+    "Mercury.md",
+    "templates/explanation.md",
+    "templates/command.md",
+    "Hackable II.md",
+    "templates/output.md",
+    "templates/user flag.md",
+    "templates/root flag.md",
+    "templates"
   ]
 }
